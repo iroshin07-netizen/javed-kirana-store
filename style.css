@@ -138,9 +138,28 @@ body {
     border-radius: 10px; text-align: center; margin-bottom: 12px;
 }
 .upi-box.hidden { display: none; }
-.upi-instruction { font-size: 0.8rem; font-weight: 600; color: #065f46; margin-bottom: 6px; }
-.qr-code-img { width: 130px; height: 130px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; background: white; padding: 4px; }
-.qr-note { font-size: 0.7rem; color: #64748b; margin-top: 4px; margin-bottom: 8px; }
+.upi-instruction { font-size: 0.8rem; font-weight: 600; color: #065f46; margin-bottom: 8px; }
+
+/* UPI Intent Button */
+.upi-intent-button {
+    display: block;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transition: transform 0.2s ease;
+}
+.upi-intent-button:active {
+    transform: scale(0.98);
+}
+
+.qr-note { font-size: 0.7rem; color: #64748b; margin-top: 6px; margin-bottom: 8px; }
 
 .file-upload-label {
     display: block; background: white; border: 1px solid #a7f3d0;
@@ -150,4 +169,3 @@ body {
 .file-input { display: none; }
 
 .place-order-btn { width: 100%; background: #059669; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-    
