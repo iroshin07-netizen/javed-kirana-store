@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <!-- Professional Pop-up Animation Splash Screen -->
+    <!-- Splash Screen -->
     <div id="splash-screen">
         <div class="splash-content">
             <img src="logo.png?v=2" alt="Logo" class="splash-logo">
@@ -73,7 +73,37 @@
             <div class="checkout-form">
                 <input type="text" id="cust-name" placeholder="Your Name" class="input-field">
                 <input type="tel" id="cust-phone" placeholder="WhatsApp Number" class="input-field">
-                <textarea id="cust-address" placeholder="Full Delivery Address" class="input-field"></textarea>
+                <textarea id="cust-address" placeholder="Full Delivery Address (Or Write 'Store Pickup')" class="input-field"></textarea>
+                
+                <!-- Payment & Fulfillment Options -->
+                <label class="section-label">Select Option:</label>
+                <div class="payment-options">
+                    <label class="radio-card">
+                        <input type="radio" name="pay-method" value="Cash on Delivery" checked onchange="toggleUpiSection()">
+                        <span>💵 Cash on Delivery</span>
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="pay-method" value="Store Pickup" onchange="toggleUpiSection()">
+                        <span>🏪 Pickup at Store</span>
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="pay-method" value="Pay via UPI" onchange="toggleUpiSection()">
+                        <span>⚡ Pay via UPI (QR)</span>
+                    </label>
+                </div>
+
+                <!-- UPI QR & Screenshot Upload Section (Hidden by default) -->
+                <div id="upi-section" class="upi-box hidden">
+                    <p class="upi-instruction">Scan QR Code to Pay via UPI:</p>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dummy@upi&pn=JavedStore" alt="Dummy UPI QR" id="upi-qr-img" class="qr-code-img">
+                    <p class="qr-note">Scan with GPay/PhonePe/PayTM</p>
+                    
+                    <label class="file-upload-label">
+                        📁 Upload Payment Screenshot:
+                        <input type="file" id="payment-screenshot" accept="image/*" class="file-input">
+                    </label>
+                </div>
+
                 <button id="place-order-btn" class="place-order-btn">Place Order</button>
             </div>
         </div>
