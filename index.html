@@ -88,15 +88,15 @@
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="pay-method" value="Pay via UPI" onchange="toggleUpiSection()">
-                        <span>⚡ Pay via UPI (QR)</span>
+                        <span>⚡ Pay via UPI App</span>
                     </label>
                 </div>
 
-                <!-- UPI QR & Screenshot Upload Section (Hidden by default) -->
+                <!-- Direct UPI Intent Button & Screenshot Upload Section -->
                 <div id="upi-section" class="upi-box hidden">
-                    <p class="upi-instruction">Scan QR Code to Pay via UPI:</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=dummy@upi&pn=JavedStore" alt="Dummy UPI QR" id="upi-qr-img" class="qr-code-img">
-                    <p class="qr-note">Scan with GPay/PhonePe/PayTM</p>
+                    <p class="upi-instruction">Click below to open GPay / PhonePe / Paytm with exact amount:</p>
+                    <a href="#" id="upi-pay-btn" class="upi-intent-button" target="_blank">📲 PAY VIA UPI APP</a>
+                    <p class="qr-note">After payment, upload your screenshot below:</p>
                     
                     <label class="file-upload-label">
                         📁 Upload Payment Screenshot:
@@ -111,4 +111,5 @@
 
     <script src="script.js"></script>
 </body>
-</html>
+                    </html>
+                    
