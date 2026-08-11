@@ -1,7 +1,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
-const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; 
+const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; // Enter your Telegram Bot Token here
 const TELEGRAM_CHAT_ID = "8513607592";
-const STORE_UPI_ID = "javedbhai@upi"; // Update this with Javed bhai's actual UPI ID later
+const STORE_UPI_ID = "javedbhai@upi"; // Replace this dummy UPI ID with Javed bhai's original UPI ID later
 
 let cart = [];
 let allFetchedProducts = [];
@@ -105,7 +105,7 @@ function updateCartUI() {
         else fc.classList.add('hidden');
     }
 
-    // Update dynamic UPI payment link with the exact total bill amount
+    // Update dynamic UPI payment link and display UPI ID with exact total bill amount
     const upiPayBtn = document.getElementById('upi-pay-btn');
     if (upiPayBtn) {
         upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
@@ -149,13 +149,26 @@ function openCartModal() {
         if(totalPriceEl) totalPriceEl.innerText = `₹${totalBill}`;
     }
     
-    // Update UPI Link inside modal
+    // Update UPI Link and Display Text inside modal
     const upiPayBtn = document.getElementById('upi-pay-btn');
+    const displayUpiId = document.getElementById('display-upi-id');
     if (upiPayBtn) {
         upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
     }
+    if (displayUpiId) {
+        displayUpiId.innerText = STORE_UPI_ID;
+    }
 
     modal.classList.remove('hidden');
+}
+
+// Function to copy UPI ID to clipboard
+function copyUpiId() {
+    navigator.clipboard.writeText(STORE_UPI_ID).then(() => {
+        alert("UPI ID copied to clipboard!");
+    }).catch(err => {
+        console.error("Failed to copy UPI ID: ", err);
+    });
 }
 
 // Toggle UPI section visibility based on selected payment method
@@ -229,4 +242,4 @@ document.getElementById('place-order-btn')?.addEventListener('click', async () =
         if(orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
     }
 });
-                                                                                                         
+        
