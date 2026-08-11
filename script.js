@@ -1,14 +1,14 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
 
-// TODO: Bas yahan apna Telegram Bot Token daal do
-const TELEGRAM_BOT_TOKEN = "APNA_BOT_TOKEN_YAHAN_DAALO";
+// Enter your Telegram Bot Token and Chat ID below carefully
+const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; 
 const TELEGRAM_CHAT_ID = "8513607592";
 
 let cart = [];
 let allFetchedProducts = [];
 let currentCategory = 'All';
 
-// Check for live announcement on load
+// Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
     const savedNotice = localStorage.getItem("javed_store_notice");
     const banner = document.getElementById('announcement-bar');
@@ -26,7 +26,7 @@ async function fetchProducts() {
         allFetchedProducts = await response.json();
         renderFilteredProducts();
     } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Fetch Error:", error);
     }
 }
 
@@ -38,11 +38,9 @@ function renderFilteredProducts() {
     const filtered = allFetchedProducts.filter(product => {
         const name = product["Product"] || product["PRODUCT"] || "";
         const status = product["Status"] || "In stock";
-        const category = product["Category"] || "Groceries";
-
         if (!name || status === "Out of stock") return false;
         if (currentCategory === 'All') return true;
-        return category.toLowerCase() === currentCategory.toLowerCase();
+        return (product["Category"] || "").toLowerCase() === currentCategory.toLowerCase();
     });
 
     if (filtered.length === 0) {
@@ -60,12 +58,10 @@ function renderFilteredProducts() {
         card.className = 'product-card';
         card.innerHTML = `
             <img src="${imageUrl}" alt="${name}" class="product-image">
-            <div class="product-info">
-                <h3 class="product-name">${name}</h3>
-                <p class="product-unit">${unit}</p>
-                <p class="product-price">₹${price}</p>
-                <button class="add-btn" onclick="addToCart('${name}', ${price}, '${unit}')">ADD +</button>
-            </div>
+            <h3 class="product-name">${name}</h3>
+            <p class="product-unit">${unit}</p>
+            <p class="product-price">₹${price}</p>
+            <button class="add-btn" onclick="addToCart('${name}', ${price}, '${unit}')">ADD +</button>
         `;
         container.appendChild(card);
     });
@@ -79,43 +75,36 @@ function filterByCategory(category) {
 }
 
 function addToCart(name, price, unit) {
-    const existingItem = cart.find(item => item.name === name);
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({ name: name, price: Number(price), unit: unit, quantity: 1 });
-    }
+    const existing = cart.find(item => item.name === name);
+    if (existing) existing.quantity += 1;
+    else cart.push({ name, price: Number(price), unit, quantity: 1 });
     updateCartUI();
 }
 
 function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     const totalBill = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
     const badge = document.getElementById('cart-count');
     if (badge) badge.innerText = totalItems;
-
-    const floatingCart = document.getElementById('floating-cart');
+    const fc = document.getElementById('floating-cart');
     if (totalItems > 0) {
-        floatingCart.classList.remove('hidden');
+        fc.classList.remove('hidden');
         document.getElementById('fc-count').innerText = `${totalItems} items`;
         document.getElementById('fc-total').innerText = `₹${totalBill}`;
     } else {
-        floatingCart.classList.add('hidden');
+        fc.classList.add('hidden');
     }
 }
 
+// Modal handling
 document.getElementById('cart-button')?.addEventListener('click', openCartModal);
 document.getElementById('floating-cart')?.addEventListener('click', openCartModal);
+document.getElementById('close-cart')?.addEventListener('click', () => document.getElementById('cart-modal').classList.add('hidden'));
 
 function openCartModal() {
-    document.getElementById('cart-modal')?.classList.remove('hidden');
+    document.getElementById('cart-modal').classList.remove('hidden');
     renderCartItems();
 }
-
-document.getElementById('close-cart')?.addEventListener('click', () => {
-    document.getElementById('cart-modal')?.classList.add('hidden');
-});
 
 const paymentRadios = document.querySelectorAll('input[name="payment-method"]');
 const upiSection = document.getElementById('upi-section');
@@ -169,6 +158,7 @@ document.getElementById('copy-upi-btn')?.addEventListener('click', () => {
     navigator.clipboard.writeText("javedbhai@upi").then(() => alert("UPI ID Copied!"));
 });
 
+// Order Placement & Telegram Integration
 document.getElementById('place-order-btn')?.addEventListener('click', async () => {
     if (cart.length === 0) { alert("Cart is empty!"); return; }
 
@@ -193,7 +183,7 @@ document.getElementById('place-order-btn')?.addEventListener('click', async () =
     let itemsText = "";
     cart.forEach(item => { itemsText += `${item.quantity} ${item.unit} ${item.name}\n`; });
 
-    const captionMsg = `🟢 *NEW ORDER RECEIVED!*\n\n*Date:* ${orderDate}\n*Order ID:* ${orderId}\n*Amount:* ₹${totalBill}\n*Payment Mode:* ${paymentMethod}\n*Customer:* ${name}\n*Phone:* ${phone}\n*Delivery address:* ${address}\n\n*Items list:*\n${itemsText}`;
+    const captionMsg = `NEW ORDER RECEIVED\n\nDate: ${orderDate}\nOrder ID: ${orderId}\nAmount: ₹${totalBill}\nPayment Mode: ${paymentMethod}\nCustomer: ${name}\nPhone: ${phone}\nDelivery Address: ${address}\n\nItems List:\n${itemsText}`;
 
     const formData = new FormData();
     formData.append("chat_id", TELEGRAM_CHAT_ID);
@@ -211,16 +201,20 @@ document.getElementById('place-order-btn')?.addEventListener('click', async () =
 
     try {
         const response = await fetch(telegramUrl, { method: 'POST', body: formData });
-        if (response.ok) {
-            alert(`🎉 Success! Order ${orderId} placed.`);
+        const result = await response.json();
+        
+        if (result.ok) {
+            alert(`Success! Order ${orderId} placed.`);
             cart = [];
             updateCartUI();
             document.getElementById('cart-modal')?.classList.add('hidden');
         } else {
-            alert("Failed to send order.");
+            console.error("Telegram API Error Details:", result);
+            alert("Failed to send order. Error: " + (result.description || "Unknown error"));
         }
     } catch (err) {
-        alert("Network error.");
+        console.error("Network Error:", err);
+        alert("Network error occurred. Please check your connection.");
     } finally {
         if (orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
     }
