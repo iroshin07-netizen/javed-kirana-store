@@ -1,5 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
-const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // Apna Token yahan daalein
+const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; // Enter your Telegram Bot Token here
 const TELEGRAM_CHAT_ID = "8513607592";
 
 let cart = [];
@@ -135,7 +135,7 @@ function openCartModal() {
                         <h4 style="font-size: 0.85rem; color: #1e293b;">${item.name}</h4>
                         <p style="font-size: 0.7rem; color: #64748b;">${item.quantity} ${item.unit} x ₹${item.price}</p>
                     </div>
-                    <div style="font-weight: 600; color: #059669; font-size: 0.9rem;">₹${itemTotal}</div>
+                    <div style="font-weight: 600; color: #059669; font-size: 0.95rem;">₹${itemTotal}</div>
                 </div>
             `;
         });
@@ -144,35 +144,74 @@ function openCartModal() {
     modal.classList.remove('hidden');
 }
 
-// Order placement using Image beacon to cleanly bypass CORS network errors
-document.getElementById('place-order-btn')?.addEventListener('click', () => {
+// Toggle UPI section visibility based on selected payment method
+function toggleUpiSection() {
+    const selectedMethod = document.querySelector('input[name="pay-method"]:checked').value;
+    const upiSection = document.getElementById('upi-section');
+    if (selectedMethod === 'Pay via UPI') {
+        upiSection.classList.remove('hidden');
+    } else {
+        upiSection.classList.add('hidden');
+    }
+}
+
+// Order placement handler with support for UPI screenshot upload
+document.getElementById('place-order-btn')?.addEventListener('click', async () => {
     if(cart.length === 0) { alert("Cart is empty!"); return; }
     
     const name = document.getElementById('cust-name')?.value.trim();
     const phone = document.getElementById('cust-phone')?.value.trim();
     const address = document.getElementById('cust-address')?.value.trim();
+    const payMethod = document.querySelector('input[name="pay-method"]:checked').value;
+    const screenshotInput = document.getElementById('payment-screenshot');
     
-    if(!name || !phone || !address) { alert("Please fill name, phone and address!"); return; }
+    if(!name || !phone || !address) { alert("Please fill name, phone and address/pickup info!"); return; }
+    
+    if(payMethod === 'Pay via UPI' && screenshotInput.files.length === 0) {
+        alert("Please upload payment screenshot for UPI payment!");
+        return;
+    }
 
     const orderBtn = document.getElementById('place-order-btn');
     if(orderBtn) { orderBtn.innerText = "Sending Order..."; orderBtn.disabled = true; }
 
     let itemsText = cart.map(i => `${i.quantity} ${i.unit} ${i.name}`).join('\n');
     const totalBill = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
-    const msg = encodeURIComponent(`🟢 NEW ORDER RECEIVED\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nTotal: ₹${totalBill}\n\nItems:\n${itemsText}`);
+    const msg = `🟢 NEW ORDER RECEIVED\n\nMode: ${payMethod}\nCustomer: ${name}\nPhone: ${phone}\nAddress/Pickup: ${address}\nTotal: ₹${totalBill}\n\nItems:\n${itemsText}`;
 
-    const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${msg}`;
+    const formData = new FormData();
+    formData.append("chat_id", TELEGRAM_CHAT_ID);
+    formData.append("caption", msg);
 
-    // Send request via Image background beacon (100% reliable, zero CORS issues)
-    const img = new Image();
-    img.src = telegramUrl;
+    let telegramApiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/`;
 
-    setTimeout(() => {
-        alert("Order Placed Successfully!");
-        cart = [];
-        updateCartUI();
-        document.getElementById('cart-modal')?.classList.add('hidden');
+    try {
+        if (payMethod === 'Pay via UPI' && screenshotInput.files.length > 0) {
+            formData.append("photo", screenshotInput.files[0]);
+            telegramApiUrl += "sendPhoto";
+        } else {
+            formData.append("text", msg);
+            telegramApiUrl += "sendMessage";
+            formData.delete("caption");
+        }
+
+        const res = await fetch(telegramApiUrl, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await res.json();
+
+        if(result.ok) {
+            alert("Order Placed Successfully!");
+            cart = [];
+            updateCartUI();
+            document.getElementById('cart-modal')?.classList.add('hidden');
+        } else {
+            alert("Failed to send order: " + (result.description || "Unknown error"));
+        }
+    } catch(e) {
+        alert("Network error occurred while sending order.");
+    } finally {
         if(orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
-    }, 800);
+    }
 });
-                   
