@@ -1,6 +1,8 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
-const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U";
-const TELEGRAM_CHAT_ID = "7135954064";
+
+// TODO: Bas yahan apna Telegram Bot Token daal do
+const TELEGRAM_BOT_TOKEN = "APNA_BOT_TOKEN_YAHAN_DAALO";
+const TELEGRAM_CHAT_ID = "8513607592";
 
 let cart = [];
 let allFetchedProducts = [];
@@ -69,7 +71,6 @@ function renderFilteredProducts() {
     });
 }
 
-// Category Tab Click Handler
 function filterByCategory(category) {
     currentCategory = category;
     document.querySelectorAll('.cat-tab').forEach(tab => tab.classList.remove('active'));
@@ -104,7 +105,6 @@ function updateCartUI() {
     }
 }
 
-// Open Cart Modal from Header or Floating Bar
 document.getElementById('cart-button')?.addEventListener('click', openCartModal);
 document.getElementById('floating-cart')?.addEventListener('click', openCartModal);
 
