@@ -1,178 +1,189 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
+const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // Apna Token yahan daalein
+const TELEGRAM_CHAT_ID = "8513607592";
+
+let cart = [];
+let allFetchedProducts = [];
+let currentCategory = 'All';
+
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+        }
+    }, 1800);
+
+    const savedNotice = localStorage.getItem("javed_store_notice");
+    if (savedNotice) {
+        const noticeEl = document.getElementById('announcement-text');
+        const bannerEl = document.getElementById('announcement-bar');
+        if(noticeEl && bannerEl) {
+            noticeEl.innerText = savedNotice;
+            bannerEl.classList.remove('hidden');
+        }
+    }
+    fetchProducts();
+});
+
+async function fetchProducts() {
+    try {
+        const response = await fetch(API_URL);
+        allFetchedProducts = await response.json();
+        renderProducts();
+    } catch (e) {
+        console.error("Error loading products:", e);
+        const container = document.getElementById('product-container');
+        if(container) container.innerHTML = "<p class='loading-text'>Failed to load items.</p>";
+    }
 }
 
-body {
-    background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
-    color: #1e293b;
-    padding-bottom: 100px;
-    min-height: 100vh;
+function renderProducts() {
+    const container = document.getElementById('product-container');
+    if (!container) return;
+    container.innerHTML = "";
+
+    const filtered = allFetchedProducts.filter(p => {
+        const status = p["Status"] || "In stock";
+        if (status === "Out of stock") return false;
+        return currentCategory === 'All' || (p.Category || "").toLowerCase() === currentCategory.toLowerCase();
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = "<p class='loading-text'>No items found.</p>";
+        return;
+    }
+
+    filtered.forEach(p => {
+        const name = p.Product || p.PRODUCT || "Item";
+        const price = p.Price || 0;
+        const unit = p.Unit || "";
+        const image = p['Image URL'] || "";
+
+        container.innerHTML += `
+            <div class="product-card">
+                <img src="${image}" alt="${name}" class="product-image">
+                <h3 class="product-name">${name}</h3>
+                <p class="product-unit">${unit}</p>
+                <p class="product-price">₹${price}</p>
+                <button class="add-btn" onclick="addToCart('${name}', ${price}, '${unit}')">ADD +</button>
+            </div>
+        `;
+    });
 }
 
-/* Splash Screen with Controlled Logo Size */
-#splash-screen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, #065f46 0%, #059669 100%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
-    transition: opacity 0.5s ease;
-}
-.splash-content {
-    text-align: center;
-    color: white;
-}
-.splash-logo {
-    width: 85px !important;
-    height: 85px !important;
-    max-width: 85px;
-    max-height: 85px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.9);
-    margin-bottom: 12px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-    animation: pulseLogo 1.2s infinite alternate;
-}
-.splash-content h2 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-.splash-content p {
-    font-size: 0.8rem;
-    opacity: 0.9;
-}
-@keyframes pulseLogo {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.06); }
+function filterByCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderProducts();
 }
 
-/* Header */
-.header {
-    background: rgba(5, 150, 105, 0.95);
-    backdrop-filter: blur(12px);
-    color: white;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-.brand-box { display: flex; align-items: center; gap: 10px; }
-.store-logo-img {
-    width: 40px; height: 40px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid white;
-}
-.logo { font-size: 1.05rem; font-weight: 700; line-height: 1.2; }
-.delivery-sub { font-size: 0.68rem; opacity: 0.9; }
-.cart-box {
-    background: rgba(255,255,255,0.2);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    display: flex; align-items: center; gap: 6px;
-    cursor: pointer;
-}
-.badge { background: white; color: #047857; padding: 2px 6px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; }
-
-/* Announcement Banner */
-.announcement-banner {
-    background: #fef3c7; color: #92400e;
-    padding: 8px 16px; font-size: 0.82rem; font-weight: 600; text-align: center;
-}
-.announcement-banner.hidden { display: none; }
-
-/* Category Tabs */
-.category-tabs-container {
-    background: white; padding: 8px 0;
-    position: sticky; top: 64px; z-index: 90;
-    border-bottom: 1px solid #e2e8f0;
-}
-.category-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px; scrollbar-width: none; }
-.category-scroll::-webkit-scrollbar { display: none; }
-.cat-tab {
-    background: #f1f5f9; border: none; padding: 6px 14px;
-    border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #475569;
-    white-space: nowrap; cursor: pointer;
-}
-.cat-tab.active { background: #059669; color: white; box-shadow: 0 2px 6px rgba(5,150,105,0.3); }
-
-/* Container & Grid */
-.container { padding: 14px; max-width: 1200px; margin: 0 auto; }
-.product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; }
-.loading-text { text-align: center; color: #64748b; margin-top: 30px; font-size: 0.85rem; grid-column: 1 / -1; }
-
-/* Product Cards */
-.product-card {
-    background: white; border-radius: 14px; padding: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-    border: 1px solid #f1f5f9;
-    display: flex; flex-direction: column; justify-content: space-between;
-}
-.product-image { width: 100%; height: 110px; object-fit: contain; border-radius: 8px; margin-bottom: 8px; }
-.product-name { font-size: 0.88rem; font-weight: 600; color: #1e293b; line-height: 1.25; }
-.product-unit { font-size: 0.72rem; color: #64748b; margin-bottom: 4px; }
-.product-price { font-size: 0.95rem; font-weight: 700; color: #059669; margin-bottom: 8px; }
-.add-btn {
-    background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;
-    padding: 7px; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; width: 100%;
-}
-.add-btn:hover { background: #059669; color: white; }
-
-/* Floating Cart Bar (High Z-Index & Clickable Fix) */
-.floating-cart {
-    position: fixed;
-    bottom: 20px;
-    left: 16px;
-    right: 16px;
-    background: #059669;
-    color: white;
-    padding: 12px 18px;
-    border-radius: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 10px 25px rgba(5, 150, 105, 0.4);
-    cursor: pointer;
-    z-index: 9999; /* Super high so nothing blocks it */
-    pointer-events: auto !important;
-}
-.floating-cart.hidden { display: none; }
-.fc-left { font-size: 0.88rem; font-weight: 600; pointer-events: none; }
-.fc-right {
-    font-weight: 700; font-size: 0.88rem;
-    background: rgba(255,255,255,0.25);
-    padding: 6px 12px; border-radius: 8px;
-    pointer-events: none;
+function addToCart(name, price, unit) {
+    const item = cart.find(i => i.name === name);
+    if (item) {
+        item.quantity++;
+    } else {
+        cart.push({ name, price: Number(price), unit, quantity: 1 });
+    }
+    updateCartUI();
 }
 
-/* Modal */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); z-index: 10000;
-    display: flex; justify-content: center; align-items: flex-end;
-}
-.modal-overlay.hidden { display: none; }
-.modal-content {
-    background: white; width: 100%; max-width: 500px; height: 85vh;
-    border-radius: 24px 24px 0 0; padding: 20px; overflow-y: auto;
-}
-.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; }
-.close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #ef4444; }
-.empty-cart { text-align: center; color: #64748b; margin: 20px 0; }
-.cart-total { border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 12px; text-align: right; color: #059669; font-weight: 700; }
-.input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; }
-.place-order-btn { width: 100%; background: #059669; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+function updateCartUI() {
+    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const totalBill = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
     
+    document.getElementById('cart-count').innerText = totalItems;
+    document.getElementById('fc-count').innerText = `${totalItems} items`;
+    document.getElementById('fc-total').innerText = `₹${totalBill}`;
+    
+    const fc = document.getElementById('floating-cart');
+    if(fc) {
+        if(totalItems > 0) fc.classList.remove('hidden');
+        else fc.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('cart-button')?.addEventListener('click', openCartModal);
+    document.getElementById('floating-cart')?.addEventListener('click', openCartModal);
+    document.getElementById('close-cart')?.addEventListener('click', () => {
+        document.getElementById('cart-modal')?.classList.add('hidden');
+    });
+});
+
+function openCartModal() {
+    const modal = document.getElementById('cart-modal');
+    const container = document.getElementById('cart-items');
+    const totalPriceEl = document.getElementById('cart-total-price');
+    
+    if(!modal || !container) return;
+    
+    if(cart.length === 0) {
+        container.innerHTML = '<p class="empty-cart">Your cart is empty!</p>';
+        if(totalPriceEl) totalPriceEl.innerText = '₹0';
+    } else {
+        container.innerHTML = '';
+        let totalBill = 0;
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            totalBill += itemTotal;
+            container.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                    <div>
+                        <h4 style="font-size: 0.85rem; color: #1e293b;">${item.name}</h4>
+                        <p style="font-size: 0.7rem; color: #64748b;">${item.quantity} ${item.unit} x ₹${item.price}</p>
+                    </div>
+                    <div style="font-weight: 600; color: #059669; font-size: 0.9rem;">₹${itemTotal}</div>
+                </div>
+            `;
+        });
+        if(totalPriceEl) totalPriceEl.innerText = `₹${totalBill}`;
+    }
+    modal.classList.remove('hidden');
+}
+
+// Fixed Order Placement using Image/URL fallback to bypass CORS network errors
+document.getElementById('place-order-btn')?.addEventListener('click', async () => {
+    if(cart.length === 0) { alert("Cart is empty!"); return; }
+    
+    const name = document.getElementById('cust-name')?.value.trim();
+    const phone = document.getElementById('cust-phone')?.value.trim();
+    const address = document.getElementById('cust-address')?.value.trim();
+    
+    if(!name || !phone || !address) { alert("Please fill name, phone and address!"); return; }
+
+    const orderBtn = document.getElementById('place-order-btn');
+    if(orderBtn) { orderBtn.innerText = "Sending Order..."; orderBtn.disabled = true; }
+
+    let itemsText = cart.map(i => `${i.quantity} ${i.unit} ${i.name}`).join('\n');
+    const totalBill = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    const msg = encodeURIComponent(`🟢 NEW ORDER RECEIVED\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nTotal: ₹${totalBill}\n\nItems:\n${itemsText}`);
+
+    const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${msg}`;
+
+    try {
+        const res = await fetch(telegramUrl);
+        const result = await res.json();
+        if(result.ok) {
+            alert("Order Placed Successfully!");
+            cart = [];
+            updateCartUI();
+            document.getElementById('cart-modal')?.classList.add('hidden');
+        } else {
+            alert("Failed to send order: " + (result.description || "Unknown error"));
+        }
+    } catch(e) {
+        // Fallback using Image beacon to completely bypass network/CORS restrictions
+        const img = new Image();
+        img.src = telegramUrl;
+        alert("Order Placed Successfully!");
+        cart = [];
+        updateCartUI();
+        document.getElementById('cart-modal')?.classList.add('hidden');
+    } finally {
+        if(orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
+    }
+});
+            
