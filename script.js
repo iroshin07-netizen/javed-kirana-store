@@ -1,6 +1,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
-const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; // Enter your Telegram Bot Token here
+const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; 
 const TELEGRAM_CHAT_ID = "8513607592";
+const STORE_UPI_ID = "javedbhai@upi"; // Update this with Javed bhai's actual UPI ID later
 
 let cart = [];
 let allFetchedProducts = [];
@@ -103,6 +104,12 @@ function updateCartUI() {
         if(totalItems > 0) fc.classList.remove('hidden');
         else fc.classList.add('hidden');
     }
+
+    // Update dynamic UPI payment link with the exact total bill amount
+    const upiPayBtn = document.getElementById('upi-pay-btn');
+    if (upiPayBtn) {
+        upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,12 +127,12 @@ function openCartModal() {
     
     if(!modal || !container) return;
     
+    let totalBill = 0;
     if(cart.length === 0) {
         container.innerHTML = '<p class="empty-cart">Your cart is empty!</p>';
         if(totalPriceEl) totalPriceEl.innerText = '₹0';
     } else {
         container.innerHTML = '';
-        let totalBill = 0;
         cart.forEach(item => {
             const itemTotal = item.price * item.quantity;
             totalBill += itemTotal;
@@ -141,6 +148,13 @@ function openCartModal() {
         });
         if(totalPriceEl) totalPriceEl.innerText = `₹${totalBill}`;
     }
+    
+    // Update UPI Link inside modal
+    const upiPayBtn = document.getElementById('upi-pay-btn');
+    if (upiPayBtn) {
+        upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
+    }
+
     modal.classList.remove('hidden');
 }
 
@@ -215,3 +229,4 @@ document.getElementById('place-order-btn')?.addEventListener('click', async () =
         if(orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
     }
 });
+                                                                                                         
