@@ -1,5 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
-const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // Update this
+const TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"; // Apna Token yahan dalein
 const TELEGRAM_CHAT_ID = "8513607592";
 
 let cart = [];
@@ -8,13 +8,21 @@ let currentCategory = 'All';
 
 window.addEventListener('load', () => {
     setTimeout(() => {
-        document.getElementById('splash-screen').style.display = 'none';
-    }, 2000);
-    
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+        }
+    }, 1500);
+
     const savedNotice = localStorage.getItem("javed_store_notice");
     if (savedNotice) {
-        document.getElementById('announcement-text').innerText = savedNotice;
-        document.getElementById('announcement-bar').classList.remove('hidden');
+        const noticeEl = document.getElementById('announcement-text');
+        const bannerEl = document.getElementById('announcement-bar');
+        if(noticeEl && bannerEl) {
+            noticeEl.innerText = savedNotice;
+            bannerEl.classList.remove('hidden');
+        }
     }
     fetchProducts();
 });
@@ -24,43 +32,154 @@ async function fetchProducts() {
         const response = await fetch(API_URL);
         allFetchedProducts = await response.json();
         renderProducts();
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error("Error loading products:", e);
+        const container = document.getElementById('product-container');
+        if(container) container.innerHTML = "<p class='loading-text'>Failed to load items.</p>";
+    }
 }
 
 function renderProducts() {
     const container = document.getElementById('product-container');
+    if (!container) return;
     container.innerHTML = "";
-    allFetchedProducts.filter(p => currentCategory === 'All' || p.Category === currentCategory).forEach(p => {
+
+    const filtered = allFetchedProducts.filter(p => {
+        const status = p["Status"] || "In stock";
+        if (status === "Out of stock") return false;
+        return currentCategory === 'All' || (p.Category || "").toLowerCase() === currentCategory.toLowerCase();
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = "<p class='loading-text'>No items found.</p>";
+        return;
+    }
+
+    filtered.forEach(p => {
+        const name = p.Product || p.PRODUCT || "Item";
+        const price = p.Price || 0;
+        const unit = p.Unit || "";
+        const image = p['Image URL'] || "";
+
         container.innerHTML += `
             <div class="product-card">
-                <img src="${p['Image URL']}" class="product-image">
-                <h3 class="product-name">${p.Product}</h3>
-                <p class="product-price">₹${p.Price}</p>
-                <button class="add-btn" onclick="addToCart('${p.Product}', ${p.Price}, '${p.Unit}')">ADD +</button>
+                <img src="${image}" alt="${name}" class="product-image">
+                <h3 class="product-name">${name}</h3>
+                <p class="product-unit">${unit}</p>
+                <p class="product-price">₹${price}</p>
+                <button class="add-btn" onclick="addToCart('${name}', ${price}, '${unit}')">ADD +</button>
             </div>
         `;
     });
 }
 
+function filterByCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderProducts();
+}
+
 function addToCart(name, price, unit) {
     const item = cart.find(i => i.name === name);
-    item ? item.quantity++ : cart.push({ name, price, quantity: 1 });
+    if (item) {
+        item.quantity++;
+    } else {
+        cart.push({ name, price: Number(price), unit, quantity: 1 });
+    }
     updateCartUI();
 }
 
 function updateCartUI() {
-    const total = cart.reduce((sum, i) => sum + i.quantity, 0);
-    document.getElementById('cart-count').innerText = total;
+    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const totalBill = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    
+    document.getElementById('cart-count').innerText = totalItems;
+    document.getElementById('fc-count').innerText = `${totalItems} items`;
+    document.getElementById('fc-total').innerText = `₹${totalBill}`;
+    
     const fc = document.getElementById('floating-cart');
-    total > 0 ? fc.classList.remove('hidden') : fc.classList.add('hidden');
+    if(fc) {
+        if(totalItems > 0) fc.classList.remove('hidden');
+        else fc.classList.add('hidden');
+    }
 }
 
-document.getElementById('place-order-btn').addEventListener('click', async () => {
-    const msg = `NEW ORDER\nCustomer: ${document.getElementById('cust-name').value}\nTotal: ₹${cart.reduce((s,i) => s+(i.price*i.quantity), 0)}`;
-    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+// Fixed Event Listeners for Cart Modal
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('cart-button')?.addEventListener('click', openCartModal);
+    document.getElementById('floating-cart')?.addEventListener('click', openCartModal);
+    document.getElementById('close-cart')?.addEventListener('click', () => {
+        document.getElementById('cart-modal')?.classList.add('hidden');
     });
-    if((await res.json()).ok) alert("Order Placed!");
+});
+
+function openCartModal() {
+    const modal = document.getElementById('cart-modal');
+    const container = document.getElementById('cart-items');
+    const totalPriceEl = document.getElementById('cart-total-price');
+    
+    if(!modal || !container) return;
+    
+    if(cart.length === 0) {
+        container.innerHTML = '<p class="empty-cart">Your cart is empty!</p>';
+        if(totalPriceEl) totalPriceEl.innerText = '₹0';
+    } else {
+        container.innerHTML = '';
+        let totalBill = 0;
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            totalBill += itemTotal;
+            container.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+                    <div>
+                        <h4 style="font-size: 0.85rem; color: #1e293b;">${item.name}</h4>
+                        <p style="font-size: 0.7rem; color: #64748b;">${item.quantity} ${item.unit} x ₹${item.price}</p>
+                    </div>
+                    <div style="font-weight: 600; color: #059669; font-size: 0.9rem;">₹${itemTotal}</div>
+                </div>
+            `;
+        });
+        if(totalPriceEl) totalPriceEl.innerText = `₹${totalBill}`;
+    }
+    modal.classList.remove('hidden');
+}
+
+// Order placement
+document.getElementById('place-order-btn')?.addEventListener('click', async () => {
+    if(cart.length === 0) { alert("Cart is empty!"); return; }
+    
+    const name = document.getElementById('cust-name')?.value.trim();
+    const phone = document.getElementById('cust-phone')?.value.trim();
+    const address = document.getElementById('cust-address')?.value.trim();
+    
+    if(!name || !phone || !address) { alert("Please fill name, phone and address!"); return; }
+
+    const orderBtn = document.getElementById('place-order-btn');
+    if(orderBtn) { orderBtn.innerText = "Sending Order..."; orderBtn.disabled = true; }
+
+    let itemsText = cart.map(i => `${i.quantity} ${i.unit} ${i.name}`).join('\n');
+    const totalBill = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
+    const msg = `NEW ORDER RECEIVED\n\nCustomer: ${name}\nPhone: ${phone}\nAddress: ${address}\nTotal: ₹${totalBill}\n\nItems:\n${itemsText}`;
+
+    try {
+        const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg })
+        });
+        const result = await res.json();
+        if(result.ok) {
+            alert("Order Placed Successfully!");
+            cart = [];
+            updateCartUI();
+            document.getElementById('cart-modal')?.classList.add('hidden');
+        } else {
+            alert("Failed to send order: " + (result.description || "Unknown error"));
+        }
+    } catch(e) {
+        alert("Network error occurred.");
+    } finally {
+        if(orderBtn) { orderBtn.innerText = "Place Order"; orderBtn.disabled = false; }
+    }
 });
