@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Javed Kirana Store - Fresh & Fast</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Ultra-Modern Quick Commerce Header with Custom Logo -->
+    <header class="header">
+        <div class="brand-box">
+            <img src="logo.png" alt="MJ General Store Logo" class="store-logo-img">
+            <div>
+                <h1 class="logo">Javed Kirana Store</h1>
+                <p class="delivery-sub">Delivering in 10-15 mins • Lucknow</p>
+            </div>
+        </div>
+        <div class="cart-box" id="cart-button">
+            🛒 Cart <span id="cart-count" class="badge">0</span>
+        </div>
+    </header>
+
+    <!-- Dynamic Store Announcement Banner -->
+    <div id="announcement-bar" class="announcement-banner hidden">
+        📢 <span id="announcement-text"></span>
+    </div>
+
+    <!-- Hero Banner Section -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h2>Groceries Delivered at Your Doorstep</h2>
+            <p>Fresh vegetables, daily essentials, and snacks at your local store prices.</p>
+        </div>
+    </section>
+
+    <!-- Category Filter Tabs -->
+    <div class="category-tabs-container">
+        <div class="category-scroll">
+            <button class="cat-tab active" onclick="filterByCategory('All')">✨ All Items</button>
+            <button class="cat-tab" onclick="filterByCategory('Groceries')">🌾 Groceries</button>
+            <button class="cat-tab" onclick="filterByCategory('Snacks')">🍪 Snacks</button>
+            <button class="cat-tab" onclick="filterByCategory('Beverages')">🧃 Beverages</button>
+            <button class="cat-tab" onclick="filterByCategory('Household')">🧼 Household</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="container">
+        <h2 class="section-title">Explore Daily Essentials</h2>
+        <div id="product-container" class="product-grid">
+            <p class="loading-text">Loading fresh items... Please wait.</p>
+        </div>
+    </main>
+
+    <!-- Floating Cart Bar -->
+    <div id="floating-cart" class="floating-cart hidden">
+        <div class="fc-left">
+            <span id="fc-count">0 items</span> • <span id="fc-total">₹0</span>
+        </div>
+        <div class="fc-right">
+            View Cart 🛒
+        </div>
+    </div>
+
+    <!-- Cart & Checkout Modal -->
+    <div id="cart-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛒 Your Basket</h2>
+                <button id="close-cart" class="close-btn">✖</button>
+            </div>
+            
+            <div id="cart-items" class="cart-items-container">
+                <p class="empty-cart">Your cart is empty!</p>
+            </div>
+            
+            <div class="cart-total">
+                <h3>Total Bill: <span id="cart-total-price">₹0</span></h3>
+            </div>
+            
+            <div class="checkout-form">
+                <h3 class="form-title">Delivery Details</h3>
+                <input type="text" id="cust-name" placeholder="Your Name" class="input-field">
+                <input type="tel" id="cust-phone" placeholder="WhatsApp Number" class="input-field">
+                <textarea id="cust-address" placeholder="Full Address (House No, Area, Landmark...)" class="input-field"></textarea>
+                
+                <div class="payment-method-container">
+                    <h3 class="form-title" style="margin-top: 10px;">Payment Method</h3>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="payment-method" value="COD" checked>
+                            💵 Cash on Delivery (COD)
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="payment-method" value="UPI">
+                            ⚡ Pay via UPI App
+                        </label>
+                    </div>
+                </div>
+
+                <div id="upi-section" class="payment-section" style="display: none;">
+                    <p class="payment-text">Pay ₹<span id="pay-amount">0</span> securely</p>
+                    <div class="smart-payment">
+                        <a href="#" id="upi-link-btn" class="upi-btn">⚡ Pay via UPI App</a>
+                        <p class="upi-id-text">UPI ID: <span id="javed-upi-id">javedbhai@upi</span> <button id="copy-upi-btn" class="copy-btn">Copy</button></p>
+                        <div class="qr-box">
+                            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 5px;">Or scan QR code</p>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="UPI QR" class="qr-code"> 
+                        </div>
+                    </div>
+                    <p style="font-size: 0.85rem; margin: 10px 0; color: #334155; font-weight: 600;">Upload payment screenshot:</p>
+                    <input type="file" id="payment-proof" accept="image/*" class="file-input">
+                </div>
+                
+                <button id="place-order-btn" class="place-order-btn" style="margin-top: 15px;">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
