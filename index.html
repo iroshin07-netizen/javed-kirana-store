@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Javed Kirana Store</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
@@ -88,15 +88,21 @@
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="pay-method" value="Pay via UPI" onchange="toggleUpiSection()">
-                        <span>⚡ Pay via UPI App</span>
+                        <span>⚡ Pay via UPI (QR Code)</span>
                     </label>
                 </div>
 
-                <!-- Direct UPI Intent Button & Screenshot Upload Section -->
+                <!-- UPI QR Code & Screenshot Upload Section -->
                 <div id="upi-section" class="upi-box hidden">
-                    <p class="upi-instruction">Click below to open GPay / PhonePe / Paytm with exact amount:</p>
-                    <a href="#" id="upi-pay-btn" class="upi-intent-button" target="_blank">📲 PAY VIA UPI APP</a>
-                    <p class="qr-note">After payment, upload your screenshot below:</p>
+                    <p class="upi-instruction">Scan QR Code to Pay via UPI:</p>
+                    <img src="https://i.postimg.cc/kXQnRXkW/IMG-20260822-WA0000(1).jpg" alt="Javed Kirana Store QR" class="qr-code-img">
+                    
+                    <div class="upi-id-container">
+                        <span class="upi-id-text">UPI ID: <b id="display-upi-id">9335587946@ptyes</b></span>
+                        <button type="button" id="copy-upi-btn" class="copy-btn" onclick="copyUpiId()">Copy</button>
+                    </div>
+
+                    <p class="qr-note">After payment, upload your payment screenshot below:</p>
                     
                     <label class="file-upload-label">
                         📁 Upload Payment Screenshot:
@@ -111,5 +117,4 @@
 
     <script src="script.js"></script>
 </body>
-                    </html>
-                    
+</html>
