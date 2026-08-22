@@ -1,7 +1,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
 const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; // Enter your Telegram Bot Token here
 const TELEGRAM_CHAT_ID = "8513607592";
-const STORE_UPI_ID = "javedbhai@upi"; // Replace this dummy UPI ID with Javed bhai's original UPI ID later
+const STORE_UPI_ID = "9335587946@ptyes"; // Replace this dummy UPI ID with Javed bhai's original UPI ID later
 
 let cart = [];
 let allFetchedProducts = [];
