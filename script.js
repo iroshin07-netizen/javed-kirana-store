@@ -1,7 +1,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyftLUtwa8XIIntZSqBaru3G0BFeA0lF5ltabbXHe8rvMY4wqf7X-vQJirLX0hrQeoMKA/exec";
 const TELEGRAM_BOT_TOKEN = "8938878280:AAHh_1LZyiU-nZyx_w4CmtEsfLhJ-04hI5U"; // Enter your Telegram Bot Token here
 const TELEGRAM_CHAT_ID = "8513607592";
-const STORE_UPI_ID = "9335587946@ptyes"; // Replace this dummy UPI ID with Javed bhai's original UPI ID later
+const STORE_UPI_ID = "9335587946@ptyes"; // Javed bhai's official UPI ID
 
 let cart = [];
 let allFetchedProducts = [];
@@ -104,12 +104,6 @@ function updateCartUI() {
         if(totalItems > 0) fc.classList.remove('hidden');
         else fc.classList.add('hidden');
     }
-
-    // Update dynamic UPI payment link and display UPI ID with exact total bill amount
-    const upiPayBtn = document.getElementById('upi-pay-btn');
-    if (upiPayBtn) {
-        upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
-    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,16 +141,6 @@ function openCartModal() {
             `;
         });
         if(totalPriceEl) totalPriceEl.innerText = `₹${totalBill}`;
-    }
-    
-    // Update UPI Link and Display Text inside modal
-    const upiPayBtn = document.getElementById('upi-pay-btn');
-    const displayUpiId = document.getElementById('display-upi-id');
-    if (upiPayBtn) {
-        upiPayBtn.href = `upi://pay?pa=${STORE_UPI_ID}&pn=Javed%20Kirana%20Store&am=${totalBill}&cu=INR`;
-    }
-    if (displayUpiId) {
-        displayUpiId.innerText = STORE_UPI_ID;
     }
 
     modal.classList.remove('hidden');
